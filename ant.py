@@ -8,7 +8,9 @@ WINSIZE = [400, 400]
 TURN_LEFT = -1
 TURN_RIGHT = 1
 TURN_STRAIGHT = 0
+TURN_U = 2
 
+TURNS = {"L":TURN_LEFT, "R":TURN_RIGHT, "S":TURN_STRAIGHT, "U":TURN_U}
 UP = (0,-1)
 RIGHT = (1,0)
 LEFT = (-1,0)
@@ -17,11 +19,12 @@ DOWN = (0,1)
 DIRECTIONS = [UP, RIGHT, DOWN, LEFT]
 #END DON'T TOUCH
 
+WHITE = (255,255,255,255)
 RED = (255, 0, 0,255)
 GREEN = (0,255,0,255)
 BLUE = (0,0,255,255)
 BLACK = (0,0,0,255)
-WHITE = (255,255,255,255)
+
 
 LGRAY = (200,200,200,255)
 MGRAY = (150,150,150,255)
@@ -34,6 +37,7 @@ class Ant():
     def __init__(self):
         self.pos = (50,50)
         self.dir = UP
+        self.rules = ts
         
     def move(self):
         self.pos = np.add(self.pos,self.dir)
@@ -42,13 +46,25 @@ class Ant():
         #I'm a genius
         self.dir = DIRECTIONS[(DIRECTIONS.index(self.dir)+d)%4]
         
+# converts a name (eg "LRLRL") and a list of colors into a dict to be used
+def genStates(name, palette):
+    n = len(palette)
+    if len(name) > len(palette):
+        raise Exception("Not enough colors. {} states but only {} colors".format(len(name), len(palette)))
         
+    states = {}
+    for i in range(len(name)):
+        states[palette[i]] = (palette[(i+1)%n], TURNS[name[i]])
+        
+    return states
+    
+      
 def add(x, y):
     return ((x[0]+y[0]),(x[1]+y[1]))    
 
 def update(surface,ant):
     p = tuple(surface.get_at(ant.pos))
-    state = ts[p]
+    state = ant.rules[p]
     new_color = state[0]
     turn = state[1]
     surface.set_at(ant.pos, new_color)
@@ -68,7 +84,8 @@ def main():
     canvas.fill(WHITE)
 
     ant = Ant()
-
+    ant.rules = genStates("USL", [WHITE, BLACK, RED])
+    
     done = 0
 
     while not done:
