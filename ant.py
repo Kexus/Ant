@@ -3,12 +3,15 @@ import numpy as np
 
 
 WINSIZE = [400, 400]
+CANSIZE = [100, 100]
 
 #DON'T TOUCH
-TURN_LEFT = -1
-TURN_RIGHT = 1
-TURN_STRAIGHT = 0
-TURN_U = 2
+TURN_LEFT = -1 #"L"
+TURN_RIGHT = 1 #"R"
+TURN_STRAIGHT = 0 #"S"
+TURN_U = 2 #U
+
+RULES = "LLRR" # CHANGE ME!
 
 TURNS = {"L":TURN_LEFT, "R":TURN_RIGHT, "S":TURN_STRAIGHT, "U":TURN_U}
 UP = (0,-1)
@@ -24,6 +27,8 @@ RED = (255, 0, 0,255)
 GREEN = (0,255,0,255)
 BLUE = (0,0,255,255)
 BLACK = (0,0,0,255)
+YELLOW = (255,255,0,255)
+CYAN = (0,255,255,255)
 
 
 LGRAY = (200,200,200,255)
@@ -41,6 +46,7 @@ class Ant():
         
     def move(self):
         self.pos = np.add(self.pos,self.dir)
+        self.pos = (self.pos[0]%CANSIZE[0], self.pos[1]%CANSIZE[1])
         
     def turn(self, d):
         #I'm a genius
@@ -55,7 +61,11 @@ def genStates(name, palette):
     states = {}
     for i in range(len(name)):
         states[palette[i]] = (palette[(i+1)%n], TURNS[name[i]])
-        
+    
+	# make sure the states are cyclic
+    if len(name) < len(palette):
+        states[palette[len(name)-1]] = (palette[0], TURNS[name[i]])
+
     return states
     
       
@@ -83,13 +93,14 @@ def main():
     screen.fill(WHITE)
     canvas.fill(WHITE)
 
-    ant = Ant()
-    ant.rules = genStates("USL", [WHITE, BLACK, RED])
+    ant1 = Ant()
+    ant1.rules = genStates(RULES, [WHITE, BLACK, RED, BLUE, GREEN, YELLOW, CYAN, MGRAY])
+
     
     done = 0
 
     while not done:
-        update(canvas,ant)
+        update(canvas,ant1)
         pg.transform.scale(canvas, screen.get_size(), screen)
         pg.display.update()
         for e in pg.event.get():
@@ -102,3 +113,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#LRU Dancer
+#LLR Highway
+#LRS Draws cardinal lines and cleans them up
+#LURSR Expands quickly as a blob
+#LURSL Expands quickly as a blob
+#LRRSL Expands as a squarish blob
+#LLRR Expands symetrically like a brain
+#LRSLR Lots of orthogonal lines with a blob in the middle
+#LRULR Dancer
+#LLUL Flag then a counting cycle?
