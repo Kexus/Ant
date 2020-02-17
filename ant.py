@@ -1,5 +1,7 @@
 import pygame as pg
 import numpy as np
+import math
+import random
 
 
 WINSIZE = [400, 400]
@@ -11,7 +13,7 @@ TURN_RIGHT = 1 #"R"
 TURN_STRAIGHT = 0 #"S"
 TURN_U = 2 #U
 
-RULES = "LLRR" # CHANGE ME!
+RULES = "SLRU" # CHANGE ME!
 
 TURNS = {"L":TURN_LEFT, "R":TURN_RIGHT, "S":TURN_STRAIGHT, "U":TURN_U}
 UP = (0,-1)
@@ -30,7 +32,7 @@ BLACK = (0,0,0,255)
 YELLOW = (255,255,0,255)
 CYAN = (0,255,255,255)
 
-
+PALETTE = [WHITE, BLACK, CYAN, BLUE, GREEN, YELLOW, RED, MGRAY]
 LGRAY = (200,200,200,255)
 MGRAY = (150,150,150,255)
 DGRAY = (100, 100, 100, 255)
@@ -53,6 +55,20 @@ class Ant():
         self.dir = DIRECTIONS[(DIRECTIONS.index(self.dir)+d)%4]
         
 # converts a name (eg "LRLRL") and a list of colors into a dict to be used
+def genRulesString(seed=0):
+    if seed == 0:
+        seed = random.randint(4, 4096)
+        
+    terms = math.ceil(math.log(seed,4))
+    mask = 3
+    shifts = 0
+    s = ""
+    for i in range(terms):
+        s += list(TURNS)[(seed&mask)>>shifts]
+        mask <<= 2
+        shifts += 2
+    return s
+    
 def genStates(name, palette):
     n = len(palette)
     if len(name) > len(palette):
@@ -90,11 +106,16 @@ def main():
     canvas = pg.Surface((100,100))
     pg.display.set_caption("Ant")
 
-    screen.fill(WHITE)
-    canvas.fill(WHITE)
+    screen.fill(PALETTE[0])
+    canvas.fill(PALETTE[0])
 
     ant1 = Ant()
-    ant1.rules = genStates(RULES, [WHITE, BLACK, RED, BLUE, GREEN, YELLOW, CYAN, MGRAY])
+    if RULES == "":
+        rules = genRulesString()
+        print(rules)
+    else:
+        rules = RULES
+    ant1.rules = genStates(rules, PALETTE)
 
     
     done = 0
@@ -108,7 +129,7 @@ def main():
                 done = 1
                 break
 
-        clock.tick(60)
+        clock.tick(120)
     pg.quit()
 
 if __name__ == "__main__":
@@ -124,3 +145,6 @@ if __name__ == "__main__":
 #LRSLR Lots of orthogonal lines with a blob in the middle
 #LRULR Dancer
 #LLUL Flag then a counting cycle?
+#LLLRRR Diagonal highway
+#LS Symmetric counter
+#SLRU Fills the screen in very cool orderly ways
